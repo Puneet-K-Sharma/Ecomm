@@ -105,5 +105,21 @@ def create_streaming_profile(profile_in: schemas.StreamingProfileCreate, request
     db.refresh(new_profile)
     return new_profile
 
+@app.post("/internal/audit-logs", status_code=201)
+def create_audit_log(log_in: schemas.AuditLogCreate, db: Session = Depends(get_db)):
+    db_log = models.AuditLog(**log_in.model_dump())
+    db.add(db_log)
+    db.commit()
+    db.refresh(db_log)
+    return {"status": "success", "id": db_log.id}
+
+@app.get("/admin/audit-logs", response_model=List[schemas.AuditLogResponse])
+def get_audit_logs(request: Request, db: Session = Depends(get_db)):
+    payload = verify_token(request)
+    if payload.get("role") != "admin":
+         raise HTTPException(status_code=403, detail="Admin required")
+    return db.query(models.AuditLog).order_by(models.AuditLog.timestamp.desc()).limit(100).all()
+
 # Expose metrics for Prometheus
 Instrumentator().instrument(app).expose(app)
+

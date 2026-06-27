@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-service
+spec:
+  selector:
+    app: stream-cart
+  ports:
+  - port: 8004
+    name: http
+    targetPort: 8004

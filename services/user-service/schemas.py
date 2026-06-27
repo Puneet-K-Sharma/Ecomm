@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 class UserProfileBase(BaseModel):
     first_name: Optional[str] = None
@@ -31,3 +32,22 @@ class StreamingProfileResponse(StreamingProfileBase):
 
     class Config:
         from_attributes = True
+
+class AuditLogBase(BaseModel):
+    ip_address: str
+    method: str
+    service_name: str
+    path: str
+    status_code: int
+    user_email: Optional[str] = None
+
+class AuditLogCreate(AuditLogBase):
+    pass
+
+class AuditLogResponse(AuditLogBase):
+    id: int
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+

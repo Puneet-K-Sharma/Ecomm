@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: stream-api-svc
+spec:
+  selector:
+    app: stream-api
+  ports:
+  - port: 8000
+    name: http
+    targetPort: 8000

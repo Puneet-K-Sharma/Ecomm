@@ -1,0 +1,116 @@
+name: Build and Deploy to AKS
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  workflow_dispatch:
+
+env:
+  ACR_NAME: ${{ secrets.ACR_NAME }}
+  AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
+  AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: auth-service
+            path: services/auth-service
+          - name: user-service
+            path: services/user-service
+          - name: product-service
+            path: services/product-service
+          - name: cart-service
+            path: services/cart-service
+          - name: order-service
+            path: services/order-service
+          - name: payment-service
+            path: services/payment-service
+          - name: review-service
+            path: services/review-service
+          - name: wishlist-service
+            path: services/wishlist-service
+          - name: vault-service
+            path: services/vault-service
+          - name: api-gateway
+            path: services/api-gateway
+          - name: frontend
+            path: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Log in to Azure Container Registry
+        run: |
+          az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and Push Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.service.path }}
+          file: ${{ matrix.service.path }}/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.service.name }}:${{ github.sha }}
+            ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.service.name }}:latest
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS Context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+
+      - name: Substitute Container Registry and Tag in Manifests
+        run: |
+          # Replace hardcoded registry and tag (e.g. aksacr1.azurecr.io/service:latest) with dynamic values
+          sed -i "s|[a-zA-Z0-9\-]*\.azurecr\.io/\([a-zA-Z0-9\-]*\):[a-zA-Z0-9\.]*|${{ env.ACR_NAME }}.azurecr.io/\1:${{ github.sha }}|g" k8s-deployments.yaml
+          if [ -f api-deploy.yaml ]; then
+            sed -i "s|[a-zA-Z0-9\-]*\.azurecr\.io/\([a-zA-Z0-9\-]*\):[a-zA-Z0-9\.]*|${{ env.ACR_NAME }}.azurecr.io/\1:${{ github.sha }}|g" api-deploy.yaml
+          fi
+
+      - name: Apply Manifests
+        run: |
+          kubectl apply -f k8s-deployments.yaml
+          if [ -f api-deploy.yaml ]; then
+            kubectl apply -f api-deploy.yaml
+          fi
+          if [ -f ingress_fix.yaml ]; then
+            kubectl apply -f ingress_fix.yaml
+          fi
+
+      - name: Verify Rollout Status
+        run: |
+          kubectl rollout status deployment/stream-auth-deploy --timeout=120s
+          kubectl rollout status deployment/stream-ui-deploy --timeout=120s

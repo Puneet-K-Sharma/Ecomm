@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-ui-green-deploy
+  labels:
+    app: stream-ui
+    version: v2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: stream-ui
+  template:
+    metadata:
+      labels:
+        app: stream-ui
+        version: v2
+    spec:
+      containers:
+      - name: stream-ui-cnt
+        image: aksacr1.azurecr.io/frontend:v1
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: secrets-store-inline
+          mountPath: /data
+        # env:
+        # - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+        #   value: InstrumentationKey=9ade6d8d-7469-4979-9892-4bc1669cbed5;IngestionEndpoint=https://centralindia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://centralindia.livediagnostics.monitor.azure.com/;ApplicationId=874a442b-fa64-45ac-aa9e-1ae530feae69
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "my-provider"

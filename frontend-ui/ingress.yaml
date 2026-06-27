@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stream-ui-ing
+spec:
+  ingressClassName: azure-application-gateway
+  rules:
+  - host: jpshop.puneetdevops.online
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: stream-ui-svc
+            port: 
+              number: 80

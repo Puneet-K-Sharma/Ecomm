@@ -1,0 +1,617 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stream-config
+data:
+  DB_SERVER: "msqlsvc.database.windows.net"
+  DB_NAME: "TestCase"
+  DB_PORT: "1433"
+  JWT_ALGORITHM: "HS256"
+  APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=76ed93b5-4511-45f0-bb5f-5f0846720312;IngestionEndpoint=https://centralindia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://centralindia.livediagnostics.monitor.azure.com/;ApplicationId=f3c8463c-d797-495e-b222-b5439f8fc7e5"
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: stream-secret
+type: Opaque
+data:
+  # Base64 encoded values (default: supersecretkey123 for JWT)
+  JWT_SECRET_KEY: c3VwZXJzZWNyZXRrZXkxMjM=
+
+---
+
+# Persistent Volume Claim for Vault storage using Azure Files
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vault-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: azurefile-csi
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+
+# 1. Auth Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-auth-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-auth
+  template:
+    metadata:
+      labels:
+        app: stream-auth
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: sql-sa
+      containers:
+      - name: stream-auth-cnt
+        image: aksacr1.azurecr.io/auth-service:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: stream-config
+        env:
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: stream-secret
+              key: JWT_SECRET_KEY
+        ports:
+        - containerPort: 8001
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: stream-auth
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
+  type: ClusterIP
+
+---
+
+# 2. User Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-user-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-user
+  template:
+    metadata:
+      labels:
+        app: stream-user
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: sql-sa
+      containers:
+      - name: stream-user-cnt
+        image: aksacr1.azurecr.io/user-service:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: stream-config
+        env:
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: stream-secret
+              key: JWT_SECRET_KEY
+        ports:
+        - containerPort: 8002
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8002
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8002
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: stream-user
+  ports:
+    - protocol: TCP
+      port: 8002
+      targetPort: 8002
+  type: ClusterIP
+
+---
+
+# 3. Product Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-product-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-product
+  template:
+    metadata:
+      labels:
+        app: stream-product
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: sql-sa
+      containers:
+      - name: stream-product-cnt
+        image: aksacr1.azurecr.io/product-service:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: stream-config
+        ports:
+        - containerPort: 8003
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8003
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8003
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+spec:
+  selector:
+    app: stream-product
+  ports:
+    - protocol: TCP
+      port: 8003
+      targetPort: 8003
+  type: ClusterIP
+
+---
+
+# 4. Cart Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-cart-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-cart
+  template:
+    metadata:
+      labels:
+        app: stream-cart
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: sql-sa
+      containers:
+      - name: stream-cart-cnt
+        image: aksacr1.azurecr.io/cart-service:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: stream-config
+        env:
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: stream-secret
+              key: JWT_SECRET_KEY
+        ports:
+        - containerPort: 8004
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8004
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8004
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-service
+spec:
+  selector:
+    app: stream-cart
+  ports:
+    - protocol: TCP
+      port: 8004
+      targetPort: 8004
+  type: ClusterIP
+
+---
+
+# 5. Order Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-order-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-order
+  template:
+    metadata:
+      labels:
+        app: stream-order
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: sql-sa
+      containers:
+      - name: stream-order-cnt
+        image: aksacr1.azurecr.io/order-service:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: stream-config
+        env:
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: stream-secret
+              key: JWT_SECRET_KEY
+        ports:
+        - containerPort: 8005
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8005
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8005
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+spec:
+  selector:
+    app: stream-order
+  ports:
+    - protocol: TCP
+      port: 8005
+      targetPort: 8005
+  type: ClusterIP
+
+---
+
+# 6. Payment Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-payment-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-payment
+  template:
+    metadata:
+      labels:
+        app: stream-payment
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: sql-sa
+      containers:
+      - name: stream-payment-cnt
+        image: aksacr1.azurecr.io/payment-service:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: stream-config
+        ports:
+        - containerPort: 8006
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8006
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8006
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+spec:
+  selector:
+    app: stream-payment
+  ports:
+    - protocol: TCP
+      port: 8006
+      targetPort: 8006
+  type: ClusterIP
+
+---
+
+# 7. Review Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-review-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-review
+  template:
+    metadata:
+      labels:
+        app: stream-review
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: sql-sa
+      containers:
+      - name: stream-review-cnt
+        image: aksacr1.azurecr.io/review-service:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: stream-config
+        ports:
+        - containerPort: 8007
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8007
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8007
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: review-service
+spec:
+  selector:
+    app: stream-review
+  ports:
+    - protocol: TCP
+      port: 8007
+      targetPort: 8007
+  type: ClusterIP
+
+---
+
+# 8. Wishlist Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-wishlist-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-wishlist
+  template:
+    metadata:
+      labels:
+        app: stream-wishlist
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: sql-sa
+      containers:
+      - name: stream-wishlist-cnt
+        image: aksacr1.azurecr.io/wishlist-service:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: stream-config
+        env:
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: stream-secret
+              key: JWT_SECRET_KEY
+        ports:
+        - containerPort: 8008
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8008
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8008
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wishlist-service
+spec:
+  selector:
+    app: stream-wishlist
+  ports:
+    - protocol: TCP
+      port: 8008
+      targetPort: 8008
+  type: ClusterIP
+
+---
+
+# 9. Vault Service (Storage Integration)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-vault-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-vault
+  template:
+    metadata:
+      labels:
+        app: stream-vault
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: sql-sa
+      containers:
+      - name: stream-vault-cnt
+        image: aksacr1.azurecr.io/vault-service:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: stream-config
+        env:
+        - name: STORAGE_PATH
+          value: "/mnt/personal-vault"
+        ports:
+        - containerPort: 8009
+        volumeMounts:
+        - name: vault-storage
+          mountPath: /mnt/personal-vault
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8009
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8009
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: vault-storage
+        persistentVolumeClaim:
+          claimName: vault-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-service
+spec:
+  selector:
+    app: stream-vault
+  ports:
+    - protocol: TCP
+      port: 8009
+      targetPort: 8009
+  type: ClusterIP
+
+---
+
+# 10. React Frontend (Web UI)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-ui-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-ui
+  template:
+    metadata:
+      labels:
+        app: stream-ui
+    spec:
+      containers:
+      - name: stream-ui-cnt
+        image: aksacr1.azurecr.io/frontend:latest
+        imagePullPolicy: Always
+        env:
+        # Pass the Azure APIM Endpoint as the API Host
+        - name: VITE_API_HOST
+          value: "https://streamshop-apim.azure-api.net"
+        - name: VITE_APP_MODE
+          value: "production"
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stream-ui-svc
+spec:
+  selector:
+    app: stream-ui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
