@@ -1,7 +1,5 @@
 import axios from 'axios';
 
-// Connect to the API Gateway - Dynamic Environment Injection
-// Falls back to hardcoded URL if VITE_API_HOST is not provided in Kubernetes
 const apiHost = window._env_?.VITE_API_HOST || 'https://api.puneetdevops.online';
 
 console.log("🚀 [v100] Connecting to API Host:", apiHost);
