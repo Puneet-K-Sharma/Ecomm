@@ -15,12 +15,10 @@ metadata:
   name: stream-secret
 type: Opaque
 data:
-  # Base64 encoded values (default: supersecretkey123 for JWT)
   JWT_SECRET_KEY: c3VwZXJzZWNyZXRrZXkxMjM=
 
 ---
 
-# Persistent Volume Claim for Vault storage using Azure Files
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -35,7 +33,6 @@ spec:
 
 ---
 
-# 1. Auth Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -65,18 +62,26 @@ spec:
               key: JWT_SECRET_KEY
         ports:
         - containerPort: 8001
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          failureThreshold: 30
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8001
-          initialDelaySeconds: 15
+          initialDelaySeconds: 60
           periodSeconds: 20
+          timeoutSeconds: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8001
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 3
 ---
 apiVersion: v1
 kind: Service
@@ -93,7 +98,6 @@ spec:
 
 ---
 
-# 2. User Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -123,18 +127,26 @@ spec:
               key: JWT_SECRET_KEY
         ports:
         - containerPort: 8002
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8002
+          failureThreshold: 30
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8002
-          initialDelaySeconds: 15
+          initialDelaySeconds: 60
           periodSeconds: 20
+          timeoutSeconds: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8002
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 3
 ---
 apiVersion: v1
 kind: Service
@@ -151,7 +163,6 @@ spec:
 
 ---
 
-# 3. Product Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -175,18 +186,26 @@ spec:
             name: stream-config
         ports:
         - containerPort: 8003
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8003
+          failureThreshold: 30
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8003
-          initialDelaySeconds: 15
+          initialDelaySeconds: 60
           periodSeconds: 20
+          timeoutSeconds: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8003
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 3
 ---
 apiVersion: v1
 kind: Service
@@ -203,7 +222,6 @@ spec:
 
 ---
 
-# 4. Cart Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -233,18 +251,26 @@ spec:
               key: JWT_SECRET_KEY
         ports:
         - containerPort: 8004
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8004
+          failureThreshold: 30
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8004
-          initialDelaySeconds: 15
+          initialDelaySeconds: 60
           periodSeconds: 20
+          timeoutSeconds: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8004
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 3
 ---
 apiVersion: v1
 kind: Service
@@ -261,7 +287,6 @@ spec:
 
 ---
 
-# 5. Order Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -291,18 +316,26 @@ spec:
               key: JWT_SECRET_KEY
         ports:
         - containerPort: 8005
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8005
+          failureThreshold: 30
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8005
-          initialDelaySeconds: 15
+          initialDelaySeconds: 60
           periodSeconds: 20
+          timeoutSeconds: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8005
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 3
 ---
 apiVersion: v1
 kind: Service
@@ -319,7 +352,6 @@ spec:
 
 ---
 
-# 6. Payment Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -343,18 +375,26 @@ spec:
             name: stream-config
         ports:
         - containerPort: 8006
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8006
+          failureThreshold: 30
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8006
-          initialDelaySeconds: 15
+          initialDelaySeconds: 60
           periodSeconds: 20
+          timeoutSeconds: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8006
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 3
 ---
 apiVersion: v1
 kind: Service
@@ -371,7 +411,6 @@ spec:
 
 ---
 
-# 7. Review Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -395,18 +434,26 @@ spec:
             name: stream-config
         ports:
         - containerPort: 8007
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8007
+          failureThreshold: 30
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8007
-          initialDelaySeconds: 15
+          initialDelaySeconds: 60
           periodSeconds: 20
+          timeoutSeconds: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8007
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 3
 ---
 apiVersion: v1
 kind: Service
@@ -423,7 +470,6 @@ spec:
 
 ---
 
-# 8. Wishlist Service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -453,18 +499,26 @@ spec:
               key: JWT_SECRET_KEY
         ports:
         - containerPort: 8008
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8008
+          failureThreshold: 30
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8008
-          initialDelaySeconds: 15
+          initialDelaySeconds: 60
           periodSeconds: 20
+          timeoutSeconds: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8008
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 3
 ---
 apiVersion: v1
 kind: Service
@@ -481,7 +535,6 @@ spec:
 
 ---
 
-# 9. Vault Service (Storage Integration)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -511,18 +564,26 @@ spec:
         volumeMounts:
         - name: vault-storage
           mountPath: /mnt/personal-vault
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8009
+          failureThreshold: 30
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8009
-          initialDelaySeconds: 15
+          initialDelaySeconds: 60
           periodSeconds: 20
+          timeoutSeconds: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8009
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 3
       volumes:
       - name: vault-storage
         persistentVolumeClaim:
@@ -543,7 +604,6 @@ spec:
 
 ---
 
-# 10. React Frontend (Web UI)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -563,7 +623,6 @@ spec:
         image: aksacr1.azurecr.io/frontend:latest
         imagePullPolicy: Always
         env:
-        # Pass the Azure APIM Endpoint as the API Host
         - name: VITE_API_HOST
           value: "https://streamshop-apim.azure-api.net"
         - name: VITE_APP_MODE
