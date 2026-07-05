@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   build-and-push:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
@@ -82,7 +82,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build-and-push
 
     steps:
@@ -96,37 +96,22 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # Install kubectl
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: latest
-
-      # Install kubelogin (Required for Entra ID enabled AKS)
-      - name: Setup kubelogin
-        uses: azure/use-kubelogin@v1
-        with:
-          kubelogin-version: latest
-
-      # Configure kubeconfig
       - name: Set AKS Context
         uses: azure/aks-set-context@v4
         with:
           resource-group: ${{ env.AKS_RESOURCE_GROUP }}
           cluster-name: ${{ env.AKS_CLUSTER_NAME }}
 
-      # Verify tools
-      - name: Verify kubectl and kubelogin
+      - name: Verify Cluster Access
         run: |
-          kubectl version --client
-          kubelogin --version
+          kubectl get nodes
 
       - name: Update Image Tags
         run: |
-          sed -i "s|[a-zA-Z0-9\-]*\.azurecr\.io/\([a-zA-Z0-9\-]*\):[a-zA-Z0-9\.]*|${{ env.ACR_NAME }}.azurecr.io/\1:${{ github.sha }}|g" k8s-deployments.yaml
+          sed -i "s|[a-zA-Z0-9-]*\.azurecr\.io/\([a-zA-Z0-9-]*\):[a-zA-Z0-9.]*|${{ env.ACR_NAME }}.azurecr.io/\1:${{ github.sha }}|g" k8s-deployments.yaml
 
           if [ -f api-deploy.yaml ]; then
-            sed -i "s|[a-zA-Z0-9\-]*\.azurecr\.io/\([a-zA-Z0-9\-]*\):[a-zA-Z0-9\.]*|${{ env.ACR_NAME }}.azurecr.io/\1:${{ github.sha }}|g" api-deploy.yaml
+            sed -i "s|[a-zA-Z0-9-]*\.azurecr\.io/\([a-zA-Z0-9-]*\):[a-zA-Z0-9.]*|${{ env.ACR_NAME }}.azurecr.io/\1:${{ github.sha }}|g" api-deploy.yaml
           fi
 
       - name: Apply Kubernetes Manifests
