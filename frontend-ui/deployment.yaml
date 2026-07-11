@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-ui-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-ui
+  template:
+    metadata:
+      labels:
+        app: stream-ui
+    spec:
+      containers:
+        - name: stream-ui-cnt
+          image: aksacr12.azurecr.io/frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 20
