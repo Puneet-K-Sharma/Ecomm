@@ -60,6 +60,16 @@ app.add_middleware(
 )
 
 @app.middleware("http")
+async def add_cors_headers(request: Request, call_next):
+    response = await call_next(request)
+    origin = request.headers.get("origin")
+    if origin in allowed_origins:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Vary"] = "Origin"
+    return response
+
+@app.middleware("http")
 async def forward_proto_middleware(request: Request, call_next):
     if request.headers.get("x-forwarded-proto") == "https":
         request.scope["scheme"] = "https"
@@ -142,6 +152,11 @@ async def route_request(service_name: str, path: str, request: Request, backgrou
             background_tasks.add_task(save_audit_log, client_ip, request.method, service_name, path, proxy_response.status_code, user_email)
             excluded_cors_headers = ["access-control-allow-origin", "access-control-allow-credentials", "access-control-allow-methods", "access-control-allow-headers"]
             proxy_headers = {k: v for k, v in proxy_response.headers.items() if k.lower() not in excluded_cors_headers}
+            origin = request.headers.get("origin")
+            if origin in allowed_origins:
+                proxy_headers["Access-Control-Allow-Origin"] = origin
+                proxy_headers["Access-Control-Allow-Credentials"] = "true"
+                proxy_headers["Vary"] = "Origin"
             return Response(content=proxy_response.content, status_code=proxy_response.status_code, headers=proxy_headers)
         except Exception as e:
             return Response(status_code=503, content=f"Gateway Error: {str(e)}")
