@@ -8,6 +8,7 @@ data:
   JWT_ALGORITHM: HS256
   APPLICATIONINSIGHTS_CONNECTION_STRING: InstrumentationKey=76ed93b5-4511-45f0-bb5f-5f0846720312;IngestionEndpoint=https://centralindia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://centralindia.livediagnostics.monitor.azure.com/;ApplicationId=f3c8463c-d797-495e-b222-b5439f8fc7e5
   VITE_API_HOST: https://api.puneetdevops.online
+  FRONTEND_URL: https://jpshop.puneetdevops.online
 ---
 apiVersion: v1
 kind: Secret
@@ -646,3 +647,77 @@ spec:
             name: stream-ui-svc
             port:
               number: 80
+  - host: api.puneetdevops.online
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: stream-api-svc
+            port:
+              number: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-api-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-api
+  template:
+    metadata:
+      labels:
+        app: stream-api
+    spec:
+      containers:
+      - name: stream-api-cnt
+        image: aksacr12.azurecr.io/api-gateway:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: stream-config
+        env:
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: stream-secret
+              key: JWT_SECRET_KEY
+        ports:
+        - containerPort: 8000
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          failureThreshold: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stream-api-svc
+spec:
+  selector:
+    app: stream-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP
+
