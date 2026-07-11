@@ -7,11 +7,18 @@ data:
   JWT_ALGORITHM: "HS256"
   APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=76ed93b5-4511-45f0-bb5f-5f0846720312;IngestionEndpoint=https://centralindia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://centralindia.livediagnostics.monitor.azure.com/;ApplicationId=f3c8463c-d797-495e-b222-b5439f8fc7e5"
   VITE_API_HOST: "https://api.puneetdevops.online"
-
 ---
-
-
-
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vault-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -74,9 +81,7 @@ spec:
       port: 8001
       targetPort: 8001
   type: ClusterIP
-
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -139,9 +144,7 @@ spec:
       port: 8002
       targetPort: 8002
   type: ClusterIP
-
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -171,6 +174,7 @@ spec:
             port: 8003
           failureThreshold: 30
           periodSeconds: 10
+          initialDelaySeconds: 60
         livenessProbe:
           httpGet:
             path: /health
@@ -198,9 +202,7 @@ spec:
       port: 8003
       targetPort: 8003
   type: ClusterIP
-
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -263,9 +265,7 @@ spec:
       port: 8004
       targetPort: 8004
   type: ClusterIP
-
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -328,9 +328,7 @@ spec:
       port: 8005
       targetPort: 8005
   type: ClusterIP
-
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -358,20 +356,21 @@ spec:
           httpGet:
             path: /health
             port: 8006
+          initialDelaySeconds: 45
           failureThreshold: 30
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8006
-          initialDelaySeconds: 60
+          initialDelaySeconds: 90
           periodSeconds: 20
           timeoutSeconds: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8006
-          initialDelaySeconds: 10
+          initialDelaySeconds: 20
           periodSeconds: 10
           timeoutSeconds: 3
 ---
@@ -387,9 +386,7 @@ spec:
       port: 8006
       targetPort: 8006
   type: ClusterIP
-
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -446,9 +443,7 @@ spec:
       port: 8007
       targetPort: 8007
   type: ClusterIP
-
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -511,9 +506,7 @@ spec:
       port: 8008
       targetPort: 8008
   type: ClusterIP
-
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:

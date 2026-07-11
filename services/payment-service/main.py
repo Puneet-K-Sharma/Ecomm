@@ -1,7 +1,6 @@
 import os
 from azure.monitor.opentelemetry import configure_azure_monitor
 
-# Configure Azure Monitor for Application Insights
 connection_string = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
 if connection_string:
     configure_azure_monitor(connection_string=connection_string)
@@ -20,7 +19,6 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Payment Service")
 
-# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -47,25 +45,18 @@ async def root():
 def process_payment(payment_in: schemas.PaymentCreate, request: Request, db: Session = Depends(get_db)):
     user_payload = verify_token(request)
     user_id = user_payload.get("id")
-    
-    # Check if payment for order already exists and is completed
     existing_payment = db.query(models.Payment).filter(
         models.Payment.order_id == payment_in.order_id,
         models.Payment.status == "Completed"
     ).first()
-    
     if existing_payment:
         raise HTTPException(status_code=400, detail="Payment already completed for this order")
-        
     transaction_id = f"txn_{uuid.uuid4()}"
-    status = "Completed" # Mocking a successful payment
-    
+    status = "Completed"
     wallet = db.query(models.Wallet).filter(models.Wallet.user_id == user_id).first()
     if not wallet or wallet.balance < payment_in.amount:
         raise HTTPException(status_code=400, detail="Insufficient Wallet Balance")
-
     wallet.balance -= payment_in.amount
-
     new_payment = models.Payment(
         order_id=payment_in.order_id,
         user_id=user_id,
@@ -73,33 +64,27 @@ def process_payment(payment_in: schemas.PaymentCreate, request: Request, db: Ses
         status=status,
         transaction_id=transaction_id
     )
-    
     db.add(new_payment)
     db.commit()
     db.refresh(new_payment)
-    
     return new_payment
 
 @app.get("/payments/order/{order_id}", response_model=schemas.PaymentResponse)
 def get_payment_status(order_id: int, request: Request, db: Session = Depends(get_db)):
     user_payload = verify_token(request)
     user_id = user_payload.get("id")
-    
     payment = db.query(models.Payment).filter(
-        models.Payment.order_id == order_id, 
+        models.Payment.order_id == order_id,
         models.Payment.user_id == user_id
     ).first()
-    
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
-        
     return payment
 
 @app.get("/wallet/balance", response_model=schemas.WalletResponse)
 def get_balance(request: Request, db: Session = Depends(get_db)):
     user_payload = verify_token(request)
     user_id = user_payload.get("id")
-    
     wallet = db.query(models.Wallet).filter(models.Wallet.user_id == user_id).first()
     if not wallet:
         wallet = models.Wallet(user_id=user_id, balance=0.0)
@@ -112,16 +97,13 @@ def get_balance(request: Request, db: Session = Depends(get_db)):
 def deposit_funds(deposit: schemas.WalletDeposit, request: Request, db: Session = Depends(get_db)):
     user_payload = verify_token(request)
     user_id = user_payload.get("id")
-    
     wallet = db.query(models.Wallet).filter(models.Wallet.user_id == user_id).first()
     if not wallet:
         wallet = models.Wallet(user_id=user_id, balance=0.0)
         db.add(wallet)
-        
     wallet.balance += deposit.amount
     db.commit()
     db.refresh(wallet)
     return wallet
 
-# Expose metrics for Prometheus
 Instrumentator().instrument(app).expose(app)
