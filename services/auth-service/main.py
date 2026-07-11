@@ -6,7 +6,7 @@ if connection_string:
     configure_azure_monitor(connection_string=connection_string)
 
 from prometheus_fastapi_instrumentator import Instrumentator
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -21,19 +21,32 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Auth Service")
 
+allowed_origins = [
+    "https://jpshop.puneetdevops.online",
+    "http://jpshop.puneetdevops.online",
+    "https://api.puneetdevops.online",
+    "http://localhost:5173",
+    "http://localhost:3000"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://jpshop.puneetdevops.online",
-        "http://jpshop.puneetdevops.online",
-        "https://api.puneetdevops.online",
-        "http://localhost:5173",
-        "http://localhost:3000"
-    ],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def add_cors_headers(request: Request, call_next):
+    response = await call_next(request)
+    origin = request.headers.get("origin")
+    if origin in allowed_origins:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Vary"] = "Origin"
+    return response
 
 @app.on_event("startup")
 def startup_db_check():
