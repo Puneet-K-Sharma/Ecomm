@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: stream-ui-cnt
-          image: aksacr12.azurecr.io/frontend:latest
+          image: aksacr12.azurecr.io/frontend:v1
           imagePullPolicy: Always
           ports:
             - containerPort: 80
