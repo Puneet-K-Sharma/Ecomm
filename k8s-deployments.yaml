@@ -87,6 +87,10 @@ spec:
   selector:
     app: stream-auth
   ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
+  type: ClusterIP
   - protocol: TCP
     port: 8001
     targetPort: 8001

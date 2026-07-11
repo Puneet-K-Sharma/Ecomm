@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Build and push all Docker images to ACR with AMD platform
-# ACR Registry: aksacr.azurecr.io
+# ACR Registry: azacr.azurecr.io
 # Version: v1
 # Platform: linux/amd64 (AMD/Intel x86_64)
 
@@ -11,6 +11,12 @@ ACR="azacr.azurecr.io"
 VERSION="v1"
 PLATFORM="linux/amd64"
 
+cleanup_image() {
+  local image="$1"
+  echo "🧹 Removing old local image: $image"
+  docker rmi -f "$image" >/dev/null 2>&1 || true
+}
+
 echo "============================================"
 echo "Docker Build & Push to ACR"
 echo "Platform: $PLATFORM"
@@ -19,10 +25,8 @@ echo "Version: $VERSION"
 echo "============================================"
 echo ""
 
-# Change to Ecomm directory
 cd "$(dirname "$0")"
 
-# Array of services to build
 services=(
   "api-gateway"
   "auth-service"
@@ -36,50 +40,48 @@ services=(
   "wishlist-service"
 )
 
-# Build each service
 for service in "${services[@]}"; do
   echo "================================================"
   echo "Building: $service"
   echo "================================================"
-  
+
   SERVICE_PATH="services/$service"
   IMAGE_NAME="$ACR/$service:$VERSION"
-  
+
   if [ ! -d "$SERVICE_PATH" ]; then
     echo "❌ ERROR: $SERVICE_PATH not found"
     continue
   fi
-  
+
   if [ ! -f "$SERVICE_PATH/Dockerfile" ]; then
     echo "❌ ERROR: $SERVICE_PATH/Dockerfile not found"
     continue
   fi
-  
-  # Build Docker image with AMD platform
-  echo "🔨 Building: $IMAGE_NAME (platform: $PLATFORM)"
-  docker build --platform $PLATFORM -t $IMAGE_NAME $SERVICE_PATH
-  
-  # Push to ACR
+
+  cleanup_image "$IMAGE_NAME"
+  echo "🔨 Building: $IMAGE_NAME (platform: $PLATFORM, no-cache)"
+  docker build --no-cache --platform $PLATFORM -t $IMAGE_NAME $SERVICE_PATH
+
   echo "📤 Pushing: $IMAGE_NAME"
   docker push $IMAGE_NAME
-  
+
   echo "✅ $service completed!"
   echo ""
 done
 
-# Build and push frontend
 if [ -f "frontend/Dockerfile" ]; then
   echo "================================================"
   echo "Building: frontend"
   echo "================================================"
-  
+
   FRONTEND_IMAGE="$ACR/frontend:$VERSION"
-  echo "🔨 Building: $FRONTEND_IMAGE (platform: $PLATFORM)"
-  docker build --platform $PLATFORM -t $FRONTEND_IMAGE frontend/
-  
+  cleanup_image "$FRONTEND_IMAGE"
+  echo "🔨 Building: $FRONTEND_IMAGE (platform: $PLATFORM, no-cache)"
+  docker build --no-cache --platform $PLATFORM -t $FRONTEND_IMAGE frontend/
+
   echo "📤 Pushing: $FRONTEND_IMAGE"
   docker push $FRONTEND_IMAGE
-  
+
   echo "✅ frontend completed!"
 else
   echo "⚠️  frontend/Dockerfile not found (skipping)"
