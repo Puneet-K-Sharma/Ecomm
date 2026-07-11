@@ -573,3 +573,66 @@ spec:
       port: 8009
       targetPort: 8009
   type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-ui-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream-ui
+  template:
+    metadata:
+      labels:
+        app: stream-ui
+    spec:
+      containers:
+        - name: stream-ui-cnt
+          image: aksacr12.azurecr.io/frontend:v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stream-ui-svc
+spec:
+  selector:
+    app: stream-ui
+  ports:
+    - port: 80
+      name: http
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stream-ui-ing
+spec:
+  ingressClassName: azure-application-gateway
+  rules:
+  - host: jpshop.puneetdevops.online
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: stream-ui-svc
+            port: 
+              number: 80
