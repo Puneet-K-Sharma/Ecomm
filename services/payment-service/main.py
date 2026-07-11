@@ -6,16 +6,13 @@ if connection_string:
     configure_azure_monitor(connection_string=connection_string)
 
 from prometheus_fastapi_instrumentator import Instrumentator
-from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List
 import models, schemas
 from database import engine, get_db
 from security import verify_token
-import uuid, time
-
-models.Base.metadata.create_all(bind=engine)
+import uuid
 
 app = FastAPI(title="Payment Service")
 
@@ -32,6 +29,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+def startup():
+    try:
+        models.Base.metadata.create_all(bind=engine)
+    except Exception as exc:
+        print(f"DB init skipped during startup: {exc}")
 
 @app.get("/health")
 def health_check():
@@ -52,7 +56,7 @@ def process_payment(payment_in: schemas.PaymentCreate, request: Request, db: Ses
     if existing_payment:
         raise HTTPException(status_code=400, detail="Payment already completed for this order")
     transaction_id = f"txn_{uuid.uuid4()}"
-    status = "Completed"
+    payment_status = "Completed"
     wallet = db.query(models.Wallet).filter(models.Wallet.user_id == user_id).first()
     if not wallet or wallet.balance < payment_in.amount:
         raise HTTPException(status_code=400, detail="Insufficient Wallet Balance")
@@ -61,7 +65,7 @@ def process_payment(payment_in: schemas.PaymentCreate, request: Request, db: Ses
         order_id=payment_in.order_id,
         user_id=user_id,
         amount=payment_in.amount,
-        status=status,
+        status=payment_status,
         transaction_id=transaction_id
     )
     db.add(new_payment)
