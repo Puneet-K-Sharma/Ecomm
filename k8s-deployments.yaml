@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: stream-config
 data:
-  DBURL: Driver={ODBC Driver 18 for SQL Server};Server=tcp:adminsql123.database.windows.net,1433;Database=mssqldb;Uid=adminuser;Pwd=admin@123;Encrypt=yes;TrustServerCertificate=no;Connection
+  DBURL: Driver={ODBC Driver 18 for SQL Server};Server=tcp:adminsql1234.database.windows.net,1433;Database=mssqldb;Uid=adminuser;Pwd=admin@123;Encrypt=yes;TrustServerCertificate=no;Connection
     Timeout=30;
   JWT_ALGORITHM: HS256
   APPLICATIONINSIGHTS_CONNECTION_STRING: InstrumentationKey=76ed93b5-4511-45f0-bb5f-5f0846720312;IngestionEndpoint=https://centralindia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://centralindia.livediagnostics.monitor.azure.com/;ApplicationId=f3c8463c-d797-495e-b222-b5439f8fc7e5
