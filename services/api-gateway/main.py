@@ -16,12 +16,9 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from database import engine, Base, SessionLocal, get_db
 from models import AuditLog
 
-# Create DB tables
 Base.metadata.create_all(bind=engine)
 
-# Service URLs
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://jpshop.puneetdevops.online")
-API_HOST = os.getenv("API_HOST", "api.puneetdevops.online")
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
 USER_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://user-service:8002")
 PRODUCT_SERVICE_URL = os.getenv("PRODUCT_SERVICE_URL", "http://product-service:8003")
@@ -46,15 +43,17 @@ SERVICES = {
 
 app = FastAPI(title="API Gateway")
 
+allowed_origins = [
+    FRONTEND_URL,
+    FRONTEND_URL.replace("https://", "http://"),
+    "https://api.puneetdevops.online",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        FRONTEND_URL,
-        FRONTEND_URL.replace("https://", "http://"),
-        "https://api.puneetdevops.online",
-        "http://localhost:5173",
-        "http://localhost:3000"
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,7 +74,7 @@ def save_audit_log(ip_address: str, method: str, service_name: str, path: str, s
             user_email=user_email,
             service_name=service_name,
             path=path,
-            status_code=status_code
+            status_code=status_code,
         )
         db.add(log_entry)
         db.commit()
@@ -93,39 +92,40 @@ def get_audit_logs(request: Request, db: Session = Depends(get_db)):
     auth_header = request.headers.get("Authorization")
     if not auth_header:
         raise HTTPException(status_code=401, detail="Missing token")
-    
     try:
         token = auth_header.split(" ")[1]
         payload = jwt.decode(token, options={"verify_signature": False})
         if payload.get("role") != "admin":
-             raise HTTPException(status_code=403, detail="Admin required")
+            raise HTTPException(status_code=403, detail="Admin required")
         return db.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(100).all()
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e))
 
-@app.api_route("/{service_name}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+@app.api_route("/{service_name}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
 async def route_request(service_name: str, path: str, request: Request, background_tasks: BackgroundTasks):
     if service_name not in SERVICES:
         return Response(status_code=404, content="Service not found")
-        
+
+    if request.method == "OPTIONS":
+        return Response(status_code=204)
+
     url = f"{SERVICES[service_name]}/{path}"
-    
-    # FORWARD HEADERS SECURELY
     headers = dict(request.headers)
     headers.pop("host", None)
     headers.pop("content-length", None)
-    
+
     body = await request.body()
     client_ip = request.client.host if request.client else "unknown"
     user_email = "Anonymous"
-    
+
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
         try:
             token = auth_header.split(" ")[1]
             payload = jwt.decode(token, options={"verify_signature": False})
             user_email = payload.get("sub", "Unknown")
-        except: pass
+        except:
+            pass
 
     headers["X-User-Email"] = user_email
 
@@ -137,20 +137,12 @@ async def route_request(service_name: str, path: str, request: Request, backgrou
                 headers=headers,
                 content=body,
                 params=request.query_params,
-                timeout=30.0
+                timeout=30.0,
             )
-            
             background_tasks.add_task(save_audit_log, client_ip, request.method, service_name, path, proxy_response.status_code, user_email)
-            
-            # Remove CORS headers from proxy response to avoid conflict with Gateway's CORSMiddleware
             excluded_cors_headers = ["access-control-allow-origin", "access-control-allow-credentials", "access-control-allow-methods", "access-control-allow-headers"]
             proxy_headers = {k: v for k, v in proxy_response.headers.items() if k.lower() not in excluded_cors_headers}
-            
-            return Response(
-                content=proxy_response.content,
-                status_code=proxy_response.status_code,
-                headers=proxy_headers
-            )
+            return Response(content=proxy_response.content, status_code=proxy_response.status_code, headers=proxy_headers)
         except Exception as e:
             return Response(status_code=503, content=f"Gateway Error: {str(e)}")
 
