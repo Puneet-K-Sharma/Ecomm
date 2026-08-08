@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
       - name: stream-auth-cnt
-        image: aksacr1.azurecr.io/auth-service:latest
+        image: akscr123.azurecr.io/auth-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -109,7 +109,7 @@ spec:
     spec:
       containers:
       - name: stream-user-cnt
-        image: aksacr1.azurecr.io/user-service:latest
+        image: akscr123.azurecr.io/user-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -172,7 +172,7 @@ spec:
     spec:
       containers:
       - name: stream-product-cnt
-        image: aksacr1.azurecr.io/product-service:latest
+        image: akscr123.azurecr.io/product-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -230,7 +230,7 @@ spec:
     spec:
       containers:
       - name: stream-cart-cnt
-        image: aksacr1.azurecr.io/cart-service:latest
+        image: akscr123.azurecr.io/cart-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -293,7 +293,7 @@ spec:
     spec:
       containers:
       - name: stream-order-cnt
-        image: aksacr1.azurecr.io/order-service:latest
+        image: akscr123.azurecr.io/order-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -356,7 +356,7 @@ spec:
     spec:
       containers:
       - name: stream-payment-cnt
-        image: aksacr1.azurecr.io/payment-service:latest
+        image: akscr123.azurecr.io/payment-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -414,7 +414,7 @@ spec:
     spec:
       containers:
       - name: stream-review-cnt
-        image: aksacr1.azurecr.io/review-service:latest
+        image: akscr123.azurecr.io/review-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -471,7 +471,7 @@ spec:
     spec:
       containers:
       - name: stream-wishlist-cnt
-        image: aksacr1.azurecr.io/wishlist-service:latest
+        image: akscr123.azurecr.io/wishlist-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -534,7 +534,7 @@ spec:
     spec:
       containers:
       - name: stream-vault-cnt
-        image: aksacr1.azurecr.io/vault-service:latest
+        image: akscr123.azurecr.io/vault-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -601,7 +601,7 @@ spec:
     spec:
       containers:
       - name: stream-ui-cnt
-        image: aksacr1.azurecr.io/frontend:v1
+        image: akscr123.azurecr.io/frontend:v1
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -674,7 +674,7 @@ spec:
     spec:
       containers:
       - name: stream-api-cnt
-        image: aksacr1.azurecr.io/api-gateway:latest
+        image: akscr123.azurecr.io/api-gateway:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:

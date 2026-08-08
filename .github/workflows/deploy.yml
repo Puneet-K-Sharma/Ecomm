@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
 
 env:
-  ACR_NAME: aksacr1
+  ACR_NAME: akscr123
   AKS_CLUSTER_NAME: aks-ecomm
-  AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
+  AKS_RESOURCE_GROUP: test
 
 permissions:
   id-token: write

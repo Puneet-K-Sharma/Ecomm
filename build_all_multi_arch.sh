@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Build and push all Docker images to ACR with Multi-arch support (AMD64 & ARM64)
-# ACR Registry: aksacr1.azurecr.io
+# ACR Registry: akscr123.azurecr.io
 # Version: latest
 # Platforms: linux/amd64, linux/arm64
 
 set -e  # Exit on error
 
-ACR="aksacr1.azurecr.io"
+ACR="akscr123.azurecr.io"
 VERSION="latest"
 PLATFORM="linux/amd64,linux/arm64"
 

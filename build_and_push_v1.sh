@@ -1,6 +1,6 @@
 #!/bin/bash
 SERVICES=("api-gateway" "user-service" "auth-service" "product-service" "cart-service" "order-service" "payment-service" "review-service" "vault-service" "wishlist-service")
-REGISTRY="aksacr1.azurecr.io"
+REGISTRY="akscr123.azurecr.io"
 TAG="v1"
 PLATFORM="linux/amd64"
 

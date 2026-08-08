@@ -284,11 +284,11 @@ Since we added the audit log endpoints and SQL model to `user-service`, we must 
 1. **Rebuild the image**:
    ```bash
    # From the root of Ecomm directory
-   docker build -t aksacr1.azurecr.io/user-service:latest ./services/user-service
+   docker build -t akscr123.azurecr.io/user-service:latest ./services/user-service
    ```
 2. **Push the image**:
    ```bash
-   docker push aksacr1.azurecr.io/user-service:latest
+   docker push akscr123.azurecr.io/user-service:latest
    ```
 3. **Restart the User Service Deployment**:
    ```bash
