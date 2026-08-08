@@ -116,17 +116,18 @@ jobs:
 
       - name: Apply Kubernetes Manifests
         run: |
+          kubectl create namespace ecomm --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f k8s-deployments.yaml
 
           if [ -f api-deploy.yaml ]; then
-            kubectl apply -f api-deploy.yaml
+            kubectl apply -f api-deploy.yaml -n ecomm
           fi
 
           if [ -f ingress_fix.yaml ]; then
-            kubectl apply -f ingress_fix.yaml
+            kubectl apply -f ingress_fix.yaml -n ecomm
           fi
 
       - name: Verify Rollout Status
         run: |
-          kubectl rollout status deployment/stream-auth-deploy --timeout=120s
-          kubectl rollout status deployment/stream-ui-deploy --timeout=120s
+          kubectl rollout status deployment/stream-auth-deploy -n ecomm --timeout=120s
+          kubectl rollout status deployment/stream-ui-deploy -n ecomm --timeout=120s

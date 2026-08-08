@@ -1,7 +1,13 @@
 apiVersion: v1
+kind: Namespace
+metadata:
+  name: ecomm
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: stream-config
+  namespace: ecomm
 data:
   DBURL: Driver={ODBC Driver 18 for SQL Server};Server=tcp:mssqldb1.database.windows.net,1433;Database=mssqldb;Uid=adminuser;Pwd=admin@123;Encrypt=yes;TrustServerCertificate=no;Connection
     Timeout=30;
@@ -14,7 +20,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: stream-secret
-  namespace: default
+  namespace: ecomm
 type: Opaque
 stringData:
   JWT_SECRET_KEY: dev-super-secret-jwt-key-change-this-in-production-12345
@@ -23,6 +29,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: vault-pvc
+  namespace: ecomm
 spec:
   accessModes:
   - ReadWriteOnce
@@ -34,6 +41,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-auth-deploy
+  namespace: ecomm
 spec:
   replicas: 1
   selector:
@@ -84,6 +92,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: auth-service
+  namespace: ecomm
 spec:
   selector:
     app: stream-auth
@@ -97,6 +106,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-user-deploy
+  namespace: ecomm
 spec:
   replicas: 1
   selector:
@@ -147,6 +157,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: user-service
+  namespace: ecomm
 spec:
   selector:
     app: stream-user
@@ -160,6 +171,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-product-deploy
+  namespace: ecomm
 spec:
   replicas: 1
   selector:
@@ -205,6 +217,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: product-service
+  namespace: ecomm
 spec:
   selector:
     app: stream-product
@@ -218,6 +231,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-cart-deploy
+  namespace: ecomm
 spec:
   replicas: 1
   selector:
@@ -268,6 +282,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: cart-service
+  namespace: ecomm
 spec:
   selector:
     app: stream-cart
@@ -281,6 +296,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-order-deploy
+  namespace: ecomm
 spec:
   replicas: 1
   selector:
@@ -331,6 +347,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: order-service
+  namespace: ecomm
 spec:
   selector:
     app: stream-order
@@ -344,6 +361,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-payment-deploy
+  namespace: ecomm
 spec:
   replicas: 1
   selector:
@@ -389,6 +407,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: payment-service
+  namespace: ecomm
 spec:
   selector:
     app: stream-payment
@@ -402,6 +421,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-review-deploy
+  namespace: ecomm
 spec:
   replicas: 1
   selector:
@@ -446,6 +466,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: review-service
+  namespace: ecomm
 spec:
   selector:
     app: stream-review
@@ -459,6 +480,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-wishlist-deploy
+  namespace: ecomm
 spec:
   replicas: 1
   selector:
@@ -509,6 +531,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: wishlist-service
+  namespace: ecomm
 spec:
   selector:
     app: stream-wishlist
@@ -522,6 +545,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-vault-deploy
+  namespace: ecomm
 spec:
   replicas: 1
   selector:
@@ -576,6 +600,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: vault-service
+  namespace: ecomm
 spec:
   selector:
     app: stream-vault
@@ -589,6 +614,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-ui-deploy
+  namespace: ecomm
 spec:
   replicas: 1
   selector:
@@ -622,6 +648,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: stream-ui-svc
+  namespace: ecomm
 spec:
   selector:
     app: stream-ui
@@ -634,6 +661,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: stream-ui-ing
+  namespace: ecomm
 spec:
   ingressClassName: azure-application-gateway
   rules:
@@ -662,6 +690,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stream-api-deploy
+  namespace: ecomm
 spec:
   replicas: 1
   selector:
@@ -712,6 +741,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: stream-api-svc
+  namespace: ecomm
 spec:
   selector:
     app: stream-api
