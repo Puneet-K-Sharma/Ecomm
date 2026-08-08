@@ -5,7 +5,7 @@ metadata:
   namespace: opentelemetry-operator-system
 spec:
   exporter:
-    endpoint: http://surveys-castle-workers-beginning.trycloudflare.com:4317
+    endpoint: https://oxford-permanent-var-sunrise.trycloudflare.com
   propagators:
     - tracecontext
     - baggage
@@ -15,8 +15,8 @@ spec:
   python:
     env:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: http://surveys-castle-workers-beginning.trycloudflare.com:4318
+        value: https://oxford-permanent-var-sunrise.trycloudflare.com
   nodejs:
     env:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: http://surveys-castle-workers-beginning.trycloudflare.com:4318
+        value: https://oxford-permanent-var-sunrise.trycloudflare.com
