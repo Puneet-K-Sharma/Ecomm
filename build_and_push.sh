@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Build and push all Docker images to ACR with AMD platform
-# ACR Registry: azacr.azurecr.io
+# ACR Registry: aksacr1.azurecr.io
 # Version: v1
 # Platform: linux/amd64 (AMD/Intel x86_64)
 
 set -e  # Exit on error
 
-ACR="azacr.azurecr.io"
+ACR="aksacr1.azurecr.io"
 VERSION="v1"
 PLATFORM="linux/amd64"
 

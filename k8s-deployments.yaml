@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: stream-config
 data:
-  DBURL: Driver={ODBC Driver 18 for SQL Server};Server=tcp:adminsql123.database.windows.net,1433;Database=mssqldb;Uid=adminuser;Pwd=admin@123;Encrypt=yes;TrustServerCertificate=no;Connection
+  DBURL: Driver={ODBC Driver 18 for SQL Server};Server=tcp:mssqldb1.database.windows.net,1433;Database=mssqldb;Uid=adminuser;Pwd=admin@123;Encrypt=yes;TrustServerCertificate=no;Connection
     Timeout=30;
   JWT_ALGORITHM: HS256
   APPLICATIONINSIGHTS_CONNECTION_STRING: InstrumentationKey=76ed93b5-4511-45f0-bb5f-5f0846720312;IngestionEndpoint=https://centralindia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://centralindia.livediagnostics.monitor.azure.com/;ApplicationId=f3c8463c-d797-495e-b222-b5439f8fc7e5
@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
       - name: stream-auth-cnt
-        image: aksacr12.azurecr.io/auth-service:latest
+        image: aksacr1.azurecr.io/auth-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -109,7 +109,7 @@ spec:
     spec:
       containers:
       - name: stream-user-cnt
-        image: aksacr12.azurecr.io/user-service:latest
+        image: aksacr1.azurecr.io/user-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -172,7 +172,7 @@ spec:
     spec:
       containers:
       - name: stream-product-cnt
-        image: aksacr12.azurecr.io/product-service:latest
+        image: aksacr1.azurecr.io/product-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -230,7 +230,7 @@ spec:
     spec:
       containers:
       - name: stream-cart-cnt
-        image: aksacr12.azurecr.io/cart-service:latest
+        image: aksacr1.azurecr.io/cart-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -293,7 +293,7 @@ spec:
     spec:
       containers:
       - name: stream-order-cnt
-        image: aksacr12.azurecr.io/order-service:latest
+        image: aksacr1.azurecr.io/order-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -356,7 +356,7 @@ spec:
     spec:
       containers:
       - name: stream-payment-cnt
-        image: aksacr12.azurecr.io/payment-service:latest
+        image: aksacr1.azurecr.io/payment-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -414,7 +414,7 @@ spec:
     spec:
       containers:
       - name: stream-review-cnt
-        image: aksacr12.azurecr.io/review-service:latest
+        image: aksacr1.azurecr.io/review-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -471,7 +471,7 @@ spec:
     spec:
       containers:
       - name: stream-wishlist-cnt
-        image: aksacr12.azurecr.io/wishlist-service:latest
+        image: aksacr1.azurecr.io/wishlist-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -534,7 +534,7 @@ spec:
     spec:
       containers:
       - name: stream-vault-cnt
-        image: aksacr12.azurecr.io/vault-service:latest
+        image: aksacr1.azurecr.io/vault-service:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -601,7 +601,7 @@ spec:
     spec:
       containers:
       - name: stream-ui-cnt
-        image: aksacr12.azurecr.io/frontend:v1
+        image: aksacr1.azurecr.io/frontend:v1
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -674,7 +674,7 @@ spec:
     spec:
       containers:
       - name: stream-api-cnt
-        image: aksacr12.azurecr.io/api-gateway:latest
+        image: aksacr1.azurecr.io/api-gateway:latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
