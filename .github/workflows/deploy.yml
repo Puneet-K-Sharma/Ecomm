@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 env:
-  ACR_NAME: ${{ secrets.ACR_NAME }}
-  AKS_CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
+  ACR_NAME: aksacr1
+  AKS_CLUSTER_NAME: aks-ecomm
   AKS_RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
 
 permissions:
