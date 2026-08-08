@@ -39,7 +39,7 @@ config:
 
   exporters:
     otlphttp:
-      endpoint: "https://oxford-permanent-var-sunrise.trycloudflare.com"
+      endpoint: "https://strategy-hawk-relates-possess.trycloudflare.com"
 
   service:
     pipelines:
