@@ -1,0 +1,73 @@
+# OpenTelemetry Collector Configuration for Zevoryx
+# Pinned to opentelemetry-collector-k8s distro
+image:
+  repository: otel/opentelemetry-collector-k8s
+  tag: "0.153.0"
+
+mode: daemonset
+
+# Chart presets
+presets:
+  logsCollection:
+    enabled: true
+  hostMetrics:
+    enabled: true
+  kubernetesAttributes:
+    enabled: true
+
+clusterRole:
+  rules:
+    - apiGroups: ['']
+      resources: ['nodes/stats', 'nodes/proxy']
+      verbs: ['get']
+
+config:
+  receivers:
+    kubelet_stats:
+      collection_interval: 20s
+      auth_type: serviceAccount
+      endpoint: "https://${env:K8S_NODE_NAME}:10250"
+      insecure_skip_verify: true
+      metric_groups: [node, pod, container]
+
+  processors:
+    resourcedetection:
+      detectors:
+        - env
+        - system
+        - azure
+
+  exporters:
+    otlp:
+      endpoint: "surveys-castle-workers-beginning.trycloudflare.com:4319"
+      tls:
+        insecure: true
+
+  service:
+    pipelines:
+      logs:
+        receivers:
+          - filelog
+        processors:
+          - k8sattributes
+          - resourcedetection
+          - batch
+        exporters:
+          - otlp
+      metrics:
+        receivers:
+          - hostmetrics
+          - kubelet_stats
+        processors:
+          - resourcedetection
+          - batch
+        exporters:
+          - otlp
+      traces:
+        receivers:
+          - otlp
+        processors:
+          - resourcedetection
+          - batch
+        exporters:
+          - otlp
