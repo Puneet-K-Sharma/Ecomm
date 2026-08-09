@@ -39,7 +39,7 @@ config:
 
   exporters:
     otlphttp:
-      endpoint: "https://strategy-hawk-relates-possess.trycloudflare.com"
+      endpoint: "https://management-diana-officers-suzuki.trycloudflare.com"
 
   service:
     pipelines:

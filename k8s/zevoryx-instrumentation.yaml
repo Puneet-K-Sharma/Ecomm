@@ -5,7 +5,7 @@ metadata:
   namespace: opentelemetry-operator-system
 spec:
   exporter:
-    endpoint: https://strategy-hawk-relates-possess.trycloudflare.com
+    endpoint: https://management-diana-officers-suzuki.trycloudflare.com
   propagators:
     - tracecontext
     - baggage
@@ -15,8 +15,8 @@ spec:
   python:
     env:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: https://strategy-hawk-relates-possess.trycloudflare.com
+        value: https://management-diana-officers-suzuki.trycloudflare.com
   nodejs:
     env:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: https://strategy-hawk-relates-possess.trycloudflare.com
+        value: https://management-diana-officers-suzuki.trycloudflare.com
