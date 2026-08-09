@@ -1,5 +1,4 @@
 # OpenTelemetry Collector Configuration for Zevoryx
-# Pinned to opentelemetry-collector-k8s distro
 image:
   repository: otel/opentelemetry-collector-k8s
   tag: "0.153.0"
@@ -23,14 +22,14 @@ clusterRole:
 
 config:
   receivers:
-    kubelet_stats:
-      collection_interval: 20s
-      auth_type: serviceAccount
-      endpoint: "https://${env:OTEL_K8S_NODE_NAME}:10250"
-      insecure_skip_verify: true
-      metric_groups: [node, pod, container]
+    file_log:
+      include:
+        - /var/log/pods/ecomm_*/*/*.log
 
   processors:
+    batch:
+      send_batch_size: 50
+      timeout: 200ms
     resourcedetection:
       detectors:
         - env

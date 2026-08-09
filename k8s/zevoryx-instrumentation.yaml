@@ -16,7 +16,15 @@ spec:
     env:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: https://children-fonts-reflect-cast.trycloudflare.com
+      - name: OTEL_BSP_SCHEDULE_DELAY_MILLIS
+        value: "200"
+      - name: OTEL_BLRP_SCHEDULE_DELAY_MILLIS
+        value: "200"
   nodejs:
     env:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: https://children-fonts-reflect-cast.trycloudflare.com
+      - name: OTEL_BSP_SCHEDULE_DELAY_MILLIS
+        value: "200"
+      - name: OTEL_BLRP_SCHEDULE_DELAY_MILLIS
+        value: "200"
