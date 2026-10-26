@@ -1,0 +1,13 @@
+githubConfigUrl: "https://github.com/Puneet-K-Sharma/Ecomm"
+githubConfigSecret: "arc-github-auth"
+
+# Minimum runners 0 (cost/memory saving when idle)
+minRunners: 0
+
+# Maximum concurrent runner pods
+maxRunners: 10
+
+# DinD (Docker-in-Docker) mode is REQUIRED for docker build & docker push
+containerMode:
+  type: dind
+

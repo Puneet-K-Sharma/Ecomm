@@ -1,4 +1,4 @@
-name: Build and Deploy to AKS
+name: Build and Deploy (Docker Desktop K8s + ACR)
 
 on:
   push:
@@ -8,9 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  ACR_NAME: akscr123
-  AKS_CLUSTER_NAME: aks-ecomm
-  AKS_RESOURCE_GROUP: test
+  ACR_NAME: acraksarc1
 
 permissions:
   id-token: write
@@ -18,7 +16,8 @@ permissions:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: arc-runner-set
+    environment: dev
 
     strategy:
       fail-fast: false
@@ -57,7 +56,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Azure Login
+      - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -82,27 +81,15 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    runs-on: self-hosted
+    runs-on: arc-runner-set
+    environment: dev
     needs: build-and-push
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Set AKS Context
-        uses: azure/aks-set-context@v4
-        with:
-          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
-          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
-
-      - name: Verify Cluster Access
+      - name: Verify Local Cluster Access
         run: |
           kubectl get nodes
 
@@ -114,7 +101,7 @@ jobs:
             sed -i "s|[a-zA-Z0-9-]*\.azurecr\.io/\([a-zA-Z0-9-]*\):[a-zA-Z0-9.]*|${{ env.ACR_NAME }}.azurecr.io/\1:${{ github.sha }}|g" api-deploy.yaml
           fi
 
-      - name: Apply Kubernetes Manifests
+      - name: Apply Kubernetes Manifests to Local Cluster
         run: |
           kubectl create namespace ecomm --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f k8s-deployments.yaml
